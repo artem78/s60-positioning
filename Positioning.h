@@ -74,6 +74,10 @@ protected:
 	void ConstructL(const TDesC &aRequestorName);
 
 	// From CActive
+public:
+	void Cancel();
+	
+protected:
 	// Handle completion
 	void RunL();
 	

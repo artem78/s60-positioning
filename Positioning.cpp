@@ -151,8 +151,19 @@ void CPositionRequestor::RequestPositionUpdate()
 	SetActive(); // Tell scheduler a request is active
 	}
 
+void CPositionRequestor::Cancel()
+	{
+	// When Cancel() called in event handler, DoCancel() do not be called
+	// due to inactive AO state. Therefore additionaly change state here.
+	SetState(EStopped);
+	
+	CActive::Cancel(); // Run method from base class
+	}
+
 void CPositionRequestor::RunL()
 	{
+	TPositionRequestorState oldState = iState;
+	
 	switch (iStatus.Int())
 		{
 		// The fix is valid
@@ -173,7 +184,8 @@ void CPositionRequestor::RunL()
 			
 			SetState(EPositionRecieved);
 			iListener->OnPositionUpdated();
-			RequestPositionUpdate();
+			if (oldState != EStopped) // Check that positioning is not cancelled
+				RequestPositionUpdate();
 			*iPrevLastPosInfo = *iLastPosInfo;
 			break;
 			}
@@ -185,7 +197,8 @@ void CPositionRequestor::RunL()
 			LOG(_L8("Partial position recieved"));
 			SetState(EPositionNotRecieved);
 			iListener->OnPositionPartialUpdated();
-			RequestPositionUpdate();
+			if (oldState != EStopped)
+				RequestPositionUpdate();
 			break;
 			}
 			
@@ -194,7 +207,8 @@ void CPositionRequestor::RunL()
 			{
 			LOG(_L8("Positioning request timed out"));
 			SetState(EPositionNotRecieved);
-			RequestPositionUpdate();
+			if (oldState != EStopped)
+				RequestPositionUpdate();
 			break;
 			}
 			
