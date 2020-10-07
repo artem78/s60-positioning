@@ -82,7 +82,7 @@ void CPositionRequestor::ConstructL(const TDesC &aRequestorName)
 	// on the position module capabilities
 	if (moduleInfoFamily & EPositionSatelliteInfoClass)
 		{
-		LOG(_L8("Sattelite info supported"));
+		LOG(_L8("Satellite info supported"));
 		iLastPosInfo = new (ELeave) TPositionSatelliteInfo;
 		iPrevLastPosInfo = new (ELeave) TPositionSatelliteInfo;
 		}
@@ -165,9 +165,9 @@ void CPositionRequestor::RunL()
 			// So set it to any plausible value.
 			if (iLastPosInfo->PositionClassType() & EPositionSatelliteInfoClass)
 				{
-				TPositionSatelliteInfo* satteliteInfo = static_cast<TPositionSatelliteInfo*>(iLastPosInfo);
-				if (Math::IsNaN(satteliteInfo->TimeDoP()))
-					satteliteInfo->SetTimeDoP(1.5);
+				TPositionSatelliteInfo* satelliteInfo = static_cast<TPositionSatelliteInfo*>(iLastPosInfo);
+				if (Math::IsNaN(satelliteInfo->TimeDoP()))
+					satelliteInfo->SetTimeDoP(1.5);
 				}
 #endif
 			
