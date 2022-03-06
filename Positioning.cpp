@@ -161,13 +161,25 @@ void CPositionRequestor::RunL()
 			LOG(_L8("Position recieved"));
 
 #ifdef __WINS__
-			// On emulator time dilution of precision is NaN.
-			// So set it to any plausible value.
+			// On emulator time and vertical dilutions of precision is NaN.
+			// So set it to any random value.
+			// ToDo: Check if simulation is used
 			if (iLastPosInfo->PositionClassType() & EPositionSatelliteInfoClass)
 				{
-				TPositionSatelliteInfo* satelliteInfo = static_cast<TPositionSatelliteInfo*>(iLastPosInfo);
-				if (Math::IsNaN(satelliteInfo->TimeDoP()))
-					satelliteInfo->SetTimeDoP(1.5);
+				TPositionSatelliteInfo* satteliteInfo = static_cast<TPositionSatelliteInfo*>(iLastPosInfo);
+				if (Math::IsNaN(satteliteInfo->TimeDoP()))
+					{
+					TReal32 val = Math::Random() % 50 / 10.0; // 0..5
+					satteliteInfo->SetTimeDoP(val);
+					}
+				if (Math::IsNaN(satteliteInfo->VerticalDoP()))
+					{
+					TReal32 val = Math::Random() % 50 / 10.0; // 0..5
+					satteliteInfo->SetVerticalDoP(val);
+					}
+				
+				DEBUG(_L("hdop=%.1f tdop=%.1f vdop=%.1f"),
+						satteliteInfo->HorizontalDoP(), satteliteInfo->TimeDoP(), satteliteInfo->VerticalDoP());
 				}
 #endif
 			
