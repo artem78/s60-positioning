@@ -16,6 +16,7 @@
 // CPositionRequestor
 
 //const TInt KGPSModuleID = 270526858;
+const TInt32 KSimModuleID = 270498433;
 const TInt KPositionMaxUpdateAge = 0; // Disable reuse positions
 
 
@@ -70,12 +71,11 @@ void CPositionRequestor::ConstructL(const TDesC &aRequestorName)
 	LOG(_L8("Position requestor created"));
 	
 	User::LeaveIfError(iPosServer.Connect());
-	TPositionModuleId moduleId;
-	User::LeaveIfError(iPosServer.GetDefaultModuleId(moduleId));
+	User::LeaveIfError(iPosServer.GetDefaultModuleId(iModuleId));
 		// ToDo: Will be better to set GPS module instead default 
 	
 	TPositionModuleInfo moduleInfo;
-	User::LeaveIfError(iPosServer.GetModuleInfoById(moduleId, moduleInfo));
+	User::LeaveIfError(iPosServer.GetModuleInfoById(iModuleId, moduleInfo));
 	TUint32 moduleInfoFamily = moduleInfo.ClassesSupported(EPositionInfoFamily);
 	
 	// Create position info object with specified type depending
@@ -106,7 +106,7 @@ void CPositionRequestor::ConstructL(const TDesC &aRequestorName)
 	
 	
 	// Preparing for start position recieving
-	User::LeaveIfError(iPositioner.Open(iPosServer, moduleId));
+	User::LeaveIfError(iPositioner.Open(iPosServer, iModuleId));
 	User::LeaveIfError(iPositioner.SetUpdateOptions(iUpdateOptions));
 	User::LeaveIfError(
 		iPositioner.SetRequestor(CRequestor::ERequestorService,
@@ -160,28 +160,29 @@ void CPositionRequestor::RunL()
 			{
 			LOG(_L8("Position recieved"));
 
-#ifdef __WINS__
-			// On emulator time and vertical dilutions of precision is NaN.
-			// So set it to any random value.
-			// ToDo: Check if simulation is used
-			if (iLastPosInfo->PositionClassType() & EPositionSatelliteInfoClass)
+			if (UsedModuleId().iUid == KSimModuleID)
 				{
-				TPositionSatelliteInfo* satteliteInfo = static_cast<TPositionSatelliteInfo*>(iLastPosInfo);
-				if (Math::IsNaN(satteliteInfo->TimeDoP()))
+				// On emulator time and vertical dilutions of precision is NaN.
+				// So set it to any random value.
+				DEBUG(_L("Make random DOPs for Simulator PSY"));
+				if (iLastPosInfo->PositionClassType() & EPositionSatelliteInfoClass)
 					{
-					TReal32 val = Math::Random() % 50 / 10.0; // 0..5
-					satteliteInfo->SetTimeDoP(val);
+					TPositionSatelliteInfo* satteliteInfo = static_cast<TPositionSatelliteInfo*>(iLastPosInfo);
+					if (Math::IsNaN(satteliteInfo->TimeDoP()))
+						{
+						TReal32 val = Math::Random() % 50 / 10.0; // 0..5
+						satteliteInfo->SetTimeDoP(val);
+						}
+					if (Math::IsNaN(satteliteInfo->VerticalDoP()))
+						{
+						TReal32 val = Math::Random() % 50 / 10.0; // 0..5
+						satteliteInfo->SetVerticalDoP(val);
+						}
+					
+					DEBUG(_L("hdop=%.1f tdop=%.1f vdop=%.1f"),
+							satteliteInfo->HorizontalDoP(), satteliteInfo->TimeDoP(), satteliteInfo->VerticalDoP());
 					}
-				if (Math::IsNaN(satteliteInfo->VerticalDoP()))
-					{
-					TReal32 val = Math::Random() % 50 / 10.0; // 0..5
-					satteliteInfo->SetVerticalDoP(val);
-					}
-				
-				DEBUG(_L("hdop=%.1f tdop=%.1f vdop=%.1f"),
-						satteliteInfo->HorizontalDoP(), satteliteInfo->TimeDoP(), satteliteInfo->VerticalDoP());
 				}
-#endif
 			
 			SetState(EPositionRecieved);
 			iListener->OnPositionUpdated();

@@ -116,10 +116,13 @@ private:
 	TPositionRequestorState iState; // State of the active object
 	MPositionListener *iListener;
 	RPositionServer iPosServer;
+	TPositionModuleId iModuleId;
 	
 	void RequestPositionUpdate();
 	void SetState(TPositionRequestorState aState);
 	
+	inline TPositionModuleId UsedModuleId()
+		{ return iModuleId; };
 	};
 
 
