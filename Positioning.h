@@ -151,6 +151,13 @@ public:
 	inline TTimeIntervalMicroSeconds UpdateInterval()
 		{ return iUpdateOptions.UpdateInterval(); };
 	
+	TUint MaxSpeedCalculationPeriod();
+	void SetMaxSpeedCalculationPeriod(TUint aPeriod);
+	
+	TReal iDistanceBetweenPoints;
+	TUint iPositionMinUpdateInterval;
+	TUint iPositionMaxUpdateInterval;
+	
 private:
 	// C++ constructor
 	CDynamicPositionRequestor(MPositionListener *aListener);
@@ -183,13 +190,14 @@ private:
 		 */
 		TInt GetMaxSpeed(TReal32 &aMaxSpeed);
 		
+		TTimeIntervalMicroSeconds iPeriod;
+		
 	private:
 		enum TPanic
 			{
 			ESpeedCalculationFailed = 1,
 			};
 		
-		TTimeIntervalMicroSeconds iPeriod;
 		RArray<TPosition> iPoints; // ToDo: What about CCirBuf?
 			// ToDo: Set granularity
 		

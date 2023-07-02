@@ -268,13 +268,16 @@ void CPositionRequestor::SetState(TPositionRequestorState aState)
 
 // CDynamicPositionRequestor
 
-const TUint KMaxSpeedCalculationPeriod	= KSecond * 60;
-const TReal KDistanceBetweenPoints		= 30.0;
-const TUint KPositionMinUpdateInterval	= KSecond * 1;
-const TUint KPositionMaxUpdateInterval	= KSecond * /*30*/ 10;
+const TUint KDefaultMaxSpeedCalculationPeriod	= KSecond * 60;
+const TReal KDefaultDistanceBetweenPoints		= 30.0;
+const TUint KDefaultPositionMinUpdateInterval	= KSecond * 1;
+const TUint KDefaultPositionMaxUpdateInterval	= KSecond * /*30*/ 10;
 
 CDynamicPositionRequestor::CDynamicPositionRequestor(MPositionListener *aListener) :
-	CPositionRequestor(aListener, KPositionMinUpdateInterval, KPositionMinUpdateInterval + KSecond)
+	iDistanceBetweenPoints(KDefaultDistanceBetweenPoints),
+	iPositionMaxUpdateInterval(KDefaultPositionMaxUpdateInterval),
+	iPositionMinUpdateInterval(KDefaultPositionMinUpdateInterval),
+	CPositionRequestor(aListener, KDefaultPositionMinUpdateInterval, KDefaultPositionMinUpdateInterval + KSecond)
 	{
 	// No implementation required
 	}
@@ -304,7 +307,7 @@ CDynamicPositionRequestor* CDynamicPositionRequestor::NewL(MPositionListener *aP
 
 void CDynamicPositionRequestor::ConstructL(const TDesC &aRequestorName)
 	{
-	iPointsCache = new (ELeave) CPointsCache(KMaxSpeedCalculationPeriod);
+	iPointsCache = new (ELeave) CPointsCache(/*iMaxSpeedCalculationPeriod*/ KDefaultMaxSpeedCalculationPeriod);
 	
 	CPositionRequestor::ConstructL(aRequestorName); // Run initialization of parent class
 	}
@@ -329,12 +332,12 @@ void CDynamicPositionRequestor::RunL()
 			if (iPointsCache->GetMaxSpeed(speed) != KErrNone)
 				{
 				LOG(_L8("No max speed!"));
-				updateInterval = KPositionMinUpdateInterval;
+				updateInterval = iPositionMinUpdateInterval;
 				}
 			else
 				{
 				LOG(_L8("Max speed=%f m/s"), speed);
-				TReal time = KDistanceBetweenPoints / speed;
+				TReal time = iDistanceBetweenPoints / speed;
 				if (Math::IsFinite(time)) // i.e. speed > 0
 					{
 					TInt err = Math::Round(time, time, 0); // Round to seconds
@@ -346,13 +349,13 @@ void CDynamicPositionRequestor::RunL()
 					updateInterval = TTimeIntervalMicroSeconds(TInt64(time * KSecond));
 					// Use range restrictions
 					updateInterval = Min(
-							Max(updateInterval, KPositionMinUpdateInterval),
-							KPositionMaxUpdateInterval);
+							Max(updateInterval, iPositionMinUpdateInterval),
+							iPositionMaxUpdateInterval);
 					}
 				else
 					{
 					LOG(_L8("Error calculating position update time - set it to max value"));
-					updateInterval = KPositionMaxUpdateInterval;
+					updateInterval = iPositionMaxUpdateInterval;
 					}
 				}
 			
@@ -370,6 +373,16 @@ void CDynamicPositionRequestor::RunL()
 		}
 	
 	CPositionRequestor::RunL(); // Run method from base class
+	}
+
+TUint CDynamicPositionRequestor::MaxSpeedCalculationPeriod()
+	{
+	return iPointsCache->iPeriod.Int64();
+	}
+
+void CDynamicPositionRequestor::SetMaxSpeedCalculationPeriod(TUint aPeriod)
+	{
+	iPointsCache->iPeriod = aPeriod;
 	}
 
 
