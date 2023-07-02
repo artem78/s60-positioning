@@ -375,24 +375,24 @@ void CDynamicPositionRequestor::RunL()
 
 // CPointsCache
 
-CPointsCache::CPointsCache(TTimeIntervalMicroSeconds aPeriod) :
+CDynamicPositionRequestor::CPointsCache::CPointsCache(TTimeIntervalMicroSeconds aPeriod) :
 	iPeriod(aPeriod)
 	{
 	// Not needed to initialize iPoints
 	}
 
-CPointsCache::~CPointsCache()
+CDynamicPositionRequestor::CPointsCache::~CPointsCache()
 	{
 	iPoints.Close();
 	}
 
-void CPointsCache::Panic(TPanic aPanic)
+void CDynamicPositionRequestor::CPointsCache::Panic(TPanic aPanic)
 	{
 	_LIT(KPanicCategory, "CPointsCache");
 	User::Panic(KPanicCategory, aPanic);
 	}
 
-void CPointsCache::AddPoint(const TPosition &aPos)
+void CDynamicPositionRequestor::CPointsCache::AddPoint(const TPosition &aPos)
 	{
 	ClearOldPoints();
 	
@@ -400,7 +400,7 @@ void CPointsCache::AddPoint(const TPosition &aPos)
 	iPoints.Append(aPos);
 	}
 	
-TInt CPointsCache::GetMaxSpeed(TReal32 &aMaxSpeed) 
+TInt CDynamicPositionRequestor::CPointsCache::GetMaxSpeed(TReal32 &aMaxSpeed) 
 	{
 	// ToDo: Optimize
 	
@@ -427,7 +427,7 @@ TInt CPointsCache::GetMaxSpeed(TReal32 &aMaxSpeed)
 	return KErrNone;
 	}
 
-void CPointsCache::ClearOldPoints()
+void CDynamicPositionRequestor::CPointsCache::ClearOldPoints()
 	{
 	// ToDo: Optimize
 	

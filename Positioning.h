@@ -130,8 +130,6 @@ private:
 	};
 
 
-// Forward declaration
-class CPointsCache;
 
 /*
  * Automatically set position update interval depending on current speed
@@ -166,40 +164,41 @@ private:
 
 	// New methods and properties
 private:	
-	CPointsCache* iPointsCache;
 	
-	};
-
-/*
- * Stores positions for the last period and return max speed
- */
-class CPointsCache : public CBase
-	{
-public:
-	CPointsCache(TTimeIntervalMicroSeconds aPeriod);
-	~CPointsCache();
-	
-	void AddPoint(const TPosition &aPos);
-	
-	/* Get max speed from saved points.
-	 * @return KErrNone if there`s no error and KErrGeneral
-	 * when there are not enouth points to calculate speed (less then 2).
-	 * @panic CPointsCache 1 If speed calculation has been failed.
+	/*
+	 * Stores positions for the last period and return max speed
 	 */
-	TInt GetMaxSpeed(TReal32 &aMaxSpeed);
-	
-private:
-	enum TPanic
+	class CPointsCache : public CBase
 		{
-		ESpeedCalculationFailed = 1,
+	public:
+		CPointsCache(TTimeIntervalMicroSeconds aPeriod);
+		~CPointsCache();
+		
+		void AddPoint(const TPosition &aPos);
+		
+		/* Get max speed from saved points.
+		 * @return KErrNone if there`s no error and KErrGeneral
+		 * when there are not enouth points to calculate speed (less then 2).
+		 * @panic CPointsCache 1 If speed calculation has been failed.
+		 */
+		TInt GetMaxSpeed(TReal32 &aMaxSpeed);
+		
+	private:
+		enum TPanic
+			{
+			ESpeedCalculationFailed = 1,
+			};
+		
+		TTimeIntervalMicroSeconds iPeriod;
+		RArray<TPosition> iPoints; // ToDo: What about CCirBuf?
+			// ToDo: Set granularity
+		
+		void Panic(TPanic aPanic);
+		void ClearOldPoints();
 		};
 	
-	TTimeIntervalMicroSeconds iPeriod;
-	RArray<TPosition> iPoints; // ToDo: What about CCirBuf?
-		// ToDo: Set granularity
+	CPointsCache* iPointsCache;
 	
-	void Panic(TPanic aPanic);
-	void ClearOldPoints();
 	};
 
 
