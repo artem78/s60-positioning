@@ -2,7 +2,7 @@
  ============================================================================
  Name		: Positioning.h
  Author	  : artem78
- Version	 : 1.0.1
+ Version	 : 1.0.2
  Copyright   : 
  Description : Receiving location info
  ============================================================================
